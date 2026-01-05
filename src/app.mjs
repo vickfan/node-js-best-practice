@@ -3,6 +3,22 @@ import errorHandler from './middlewares/error.mjs'
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser'
 import { BadRequestError, NotFoundError } from './utils/error.mjs'
+import logger from './utils/logger.mjs'
+import validation from './middlewares/validation.mjs'
+import Joi from 'joi'
+
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught exception! Shutting down...', {
+    message: err.message,
+    stack: err.stack
+  })
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error(`Unhandled rejection at ${promise}, reason: ${reason}`)
+  process.exit(1)
+})
 
 const app = new Koa()
 const router = new Router()
@@ -28,9 +44,22 @@ router.get('/users', async (ctx) => {
   }
 })
 
+const createUserSchema = Joi.object({
+  name: Joi.string().min(2).max(50).required(),
+  email: Joi.string().email().required()
+})
+
+router.post('/users', validation(createUserSchema, 'body'), async (ctx) => {
+  const { name, email } = ctx.validated
+  logger.info(`Creating user ${name} with email ${email}`)
+  ctx.body = {
+    success: true,
+    name,
+    email
+  }
+})
+
 app.use(router.routes())
 app.use(router.allowedMethods())
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000')
-})
+export default app

@@ -1,4 +1,5 @@
 import { AppError } from '../utils/error.mjs'
+import logger from '../utils/logger.mjs'
 
 const errorHandler = async (ctx, next) => {
   try {
@@ -17,10 +18,20 @@ const errorHandler = async (ctx, next) => {
             err.isOperational || false
           )
 
+    const logData = {
+      message: error.message,
+      status: error.status,
+      path: ctx.path,
+      method: ctx.method,
+      ip: ctx.ip,
+      ...(process.env.NODE_ENV !== 'production' && { stack: error.stack })
+    }
     if (!error.isOperational) {
       // log programmer error
+      logger.error('Critical programmer error occurred', logData)
     } else {
       //  log operational error
+      logger.warn('Operational error occurred', logData)
     }
 
     ctx.status = error.status
