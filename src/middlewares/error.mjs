@@ -1,4 +1,4 @@
-import { AppError } from '../utils/error.mjs'
+import { AppError, NotFoundError } from '../utils/error.mjs'
 import logger from '../utils/logger.mjs'
 
 const errorHandler = async (ctx, next) => {
@@ -6,7 +6,7 @@ const errorHandler = async (ctx, next) => {
     await next()
 
     if (ctx.status === 404 && !ctx.body) {
-      ctx.throw(404, 'Not Found')
+      throw new NotFoundError('Not Found')
     }
   } catch (err) {
     const error =
@@ -26,6 +26,7 @@ const errorHandler = async (ctx, next) => {
       ip: ctx.ip,
       ...(process.env.NODE_ENV !== 'production' && { stack: error.stack })
     }
+    console.log({ logData })
     if (!error.isOperational) {
       // log programmer error
       logger.error('Critical programmer error occurred', logData)
@@ -38,10 +39,15 @@ const errorHandler = async (ctx, next) => {
     ctx.body = {
       success: false,
       error: {
+        code: error.status,
         message: error.message,
+        ...(process.env.NODE_ENV !== 'production' && {
+          details: error.details
+        }),
         ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
       }
     }
+    console.log({ body: ctx.body })
     ctx.type = 'application/json'
   }
 }
