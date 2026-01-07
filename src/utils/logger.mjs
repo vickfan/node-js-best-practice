@@ -1,4 +1,4 @@
-import winston from 'winston'
+import winston from 'winston';
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -13,26 +13,26 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
-      )
+      ),
     }),
     ...(process.env.NODE_ENV === 'production'
       ? [
           new winston.transports.File({
             filename: 'error.log',
-            level: 'error'
+            level: 'error',
           }),
           new winston.transports.File({
-            filename: 'combined.log'
-          })
+            filename: 'combined.log',
+          }),
         ]
-      : [])
-  ]
-})
+      : []),
+  ],
+});
 
 logger.stream = {
   write: (message) => {
-    logger.info(message.trim())
-  }
-}
+    logger.info(message.trim());
+  },
+};
 
-export default logger
+export default logger;

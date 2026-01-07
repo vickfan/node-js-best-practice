@@ -1,5 +1,4 @@
-import Joi from 'joi'
-import { BadRequestError } from '../utils/error.mjs'
+import { BadRequestError } from '../utils/error.mjs';
 
 export default (schema, location = 'body') =>
   async (ctx, next) => {
@@ -7,20 +6,20 @@ export default (schema, location = 'body') =>
       {
         body: ctx.request.body,
         query: ctx.request.query,
-        params: ctx.params
-      }[location] || {}
+        params: ctx.params,
+      }[location] || {};
 
     const { error, value } = schema.validate(data, {
       abortEarly: false,
-      allowUnknown: true
-    })
+      allowUnknown: true,
+    });
 
     if (error) {
-      const messages = error.details.map((detail) => detail.message).join(', ')
-      throw new BadRequestError(`Validation error: ${messages}`)
+      const messages = error.details.map((detail) => detail.message).join(', ');
+      throw new BadRequestError(`Validation error: ${messages}`);
     }
 
-    ctx.validated = value
+    ctx.validated = value;
 
-    await next()
-  }
+    await next();
+  };

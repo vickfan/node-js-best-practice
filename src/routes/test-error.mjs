@@ -1,38 +1,39 @@
-import Router from 'koa-router'
+import Router from 'koa-router';
+
 import {
   BadRequestError,
   NotFoundError,
   UnauthorizedError,
-  InternalServerError
-} from '../utils/error.mjs'
+  InternalServerError,
+} from '../utils/error.mjs';
 
-const router = new Router({ prefix: '/test-error' })
+const router = new Router({ prefix: '/test-error' });
 
-router.get('/bad-request', (ctx) => {
-  throw new BadRequestError('Bad request')
-})
+router.get('/bad-request', () => {
+  throw new BadRequestError('Bad request');
+});
 
-router.get('/not-found', (ctx) => {
-  throw new NotFoundError('Not found')
-})
+router.get('/not-found', () => {
+  throw new NotFoundError('Not found');
+});
 
-router.get('/unauthorized', (ctx) => {
-  throw new UnauthorizedError('Unauthorized')
-})
+router.get('/unauthorized', () => {
+  throw new UnauthorizedError('Unauthorized');
+});
 
-router.get('/programmer-error', (ctx) => {
-  throw new InternalServerError('Internal server error')
-})
+router.get('/programmer-error', () => {
+  throw new InternalServerError('Internal server error');
+});
 
 router.get('/unhandled-promise', (ctx) => {
-  Promise.reject(new Error('Unhandled promise'))
+  Promise.reject(new Error('Unhandled promise'));
   ctx.body = {
-    message: 'reject async'
-  }
-})
+    message: 'reject async',
+  };
+});
 
-router.get('/sync-crash', (ctx) => {
-  throw new Error('Sync crash')
-})
+router.get('/sync-crash', () => {
+  throw new Error('Sync crash');
+});
 
-export default router
+export default router;
