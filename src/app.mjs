@@ -4,7 +4,7 @@ import bodyParser from 'koa-bodyparser'
 import Router from 'koa-router'
 
 import { errorHandler, validation } from './middlewares/index.mjs'
-import testErrorRouter from './routes/test-error.mjs'
+import { healthRouter, testErrorRouter } from './routes/index.mjs'
 import { BadRequestError, NotFoundError, logger } from './utils/index.mjs'
 
 process.on('uncaughtException', (err) => {
@@ -62,6 +62,7 @@ router.post('/users', validation(createUserSchema, 'body'), async (ctx) => {
   }
 })
 
+app.use(healthRouter.routes())
 app.use(testErrorRouter.routes())
 app.use(router.routes())
 app.use(router.allowedMethods())
