@@ -26,7 +26,6 @@ const errorHandler = async (ctx, next) => {
       ip: ctx.ip,
       ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
     }
-    console.log({ logData })
     if (!error.isOperational) {
       // log programmer error
       logger.error('Critical programmer error occurred', logData)
@@ -47,7 +46,6 @@ const errorHandler = async (ctx, next) => {
         ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
       },
     }
-    console.log({ body: ctx.body })
     ctx.type = 'application/json'
   }
 }

@@ -33,10 +33,17 @@ class InternalServerError extends AppError {
   }
 }
 
+class ExternalServiceError extends AppError {
+  constructor(message = 'External service error') {
+    super(message, 502, true)
+  }
+}
+
 export {
   AppError,
   NotFoundError,
   BadRequestError,
   UnauthorizedError,
   InternalServerError,
+  ExternalServiceError,
 }
