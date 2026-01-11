@@ -35,15 +35,17 @@ router.get('/', validation(getUserSchema, 'query'), async (ctx) => {
 const createUserSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
+  age: Joi.number().integer().min(0).required(),
 })
 
 router.post('/', validation(createUserSchema, 'body'), async (ctx) => {
-  const { name, email } = ctx.validated
+  const { name, email, age } = ctx.validated
   logger.info(`Creating user ${name} with email ${email}`)
   ctx.body = {
     success: true,
     name,
     email,
+    age,
   }
 })
 
