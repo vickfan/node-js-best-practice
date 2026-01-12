@@ -1,28 +1,36 @@
 import winston from 'winston'
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  level: isProduction ? 'info' : 'debug',
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
-    winston.format.splat(),
+    winston.format.metadata({ fileExcept: ['message', 'level', 'timestamp'] }),
     winston.format.json()
   ),
   transports: [
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
+      format: isProduction
+        ? winston.format.json()
+        : winston.format.combine(
+            winston.format.colorize(),
+            winston.format.simple()
+          ),
     }),
-    ...(process.env.NODE_ENV === 'production'
+    ...(isProduction
       ? [
           new winston.transports.File({
-            filename: 'error.log',
+            filename: 'logs/error.log',
             level: 'error',
+            maxsize: 5242880, // 5MB
+            maxFiles: 5,
           }),
           new winston.transports.File({
-            filename: 'combined.log',
+            filename: 'logs/combined.log',
+            maxsize: 5242880, // 5MB
+            maxFiles: 5,
           }),
         ]
       : []),

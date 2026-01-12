@@ -1,5 +1,6 @@
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
+import koaHelmet from 'koa-helmet'
 import Router from 'koa-router'
 
 import { errorHandler } from './middlewares/index.mjs'
@@ -21,7 +22,21 @@ process.on('unhandledRejection', (reason, promise) => {
 const app = new Koa()
 const router = new Router()
 
+if (process.env.NODE_ENV === 'production') {
+  app.proxy = true
+}
+
 app.use(errorHandler)
+app.use(
+  koaHelmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  })
+)
 
 app.use(bodyParser())
 

@@ -9,4 +9,14 @@ router.get('/', async (ctx) => {
   }
 })
 
+router.get('/ready', async (ctx) => {
+  ctx.body = { status: 'ready' }
+  ctx.status = 200
+})
+
+router.get('/metrics', async (ctx) => {
+  ctx.body = { status: 'metrics' }
+  ctx.status = 200
+})
+
 export default router
