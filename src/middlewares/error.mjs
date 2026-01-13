@@ -25,6 +25,7 @@ const errorHandler = async (ctx, next) => {
       method: ctx.method,
       ip: ctx.ip,
       ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
+      transactionId: ctx.state.transactionId,
     }
     if (!error.isOperational) {
       // log programmer error

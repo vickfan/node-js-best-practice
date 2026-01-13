@@ -35,6 +35,9 @@ const logger = winston.createLogger({
         ]
       : []),
   ],
+  defaultMeta: {
+    service: 'koa-api',
+  },
 })
 
 logger.stream = {

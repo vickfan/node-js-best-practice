@@ -2,9 +2,16 @@ import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import koaHelmet from 'koa-helmet'
 import Router from 'koa-router'
+import session from 'koa-session'
 
-import { errorHandler } from './middlewares/index.mjs'
-import { healthRouter, testErrorRouter, usersRouter } from './routes/index.mjs'
+import { connectRedis, sessionConfig } from './config/redis.mjs'
+import { errorHandler, transactionId, envGuard } from './middlewares/index.mjs'
+import {
+  healthRouter,
+  testErrorRouter,
+  usersRouter,
+  sessionTestRouter,
+} from './routes/index.mjs'
 import { logger } from './utils/index.mjs'
 
 process.on('uncaughtException', (err) => {
@@ -26,6 +33,14 @@ if (process.env.NODE_ENV === 'production') {
   app.proxy = true
 }
 
+await connectRedis()
+
+// 加 session middleware（放喺 transactionId 之後，helmet 之前）
+app.keys = [process.env.SESSION_SECRET || 'your-secret-key-change-me'] // 必須！用來簽名 cookie
+app.use(session(sessionConfig, app))
+
+app.use(envGuard)
+app.use(transactionId)
 app.use(errorHandler)
 app.use(
   koaHelmet({
@@ -44,6 +59,7 @@ app.use(usersRouter.routes())
 app.use(healthRouter.routes())
 app.use(testErrorRouter.routes())
 app.use(router.routes())
+app.use(sessionTestRouter.routes())
 app.use(router.allowedMethods())
 
 export default app
