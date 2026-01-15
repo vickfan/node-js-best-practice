@@ -35,12 +35,10 @@ if (process.env.NODE_ENV === 'production') {
 
 await connectRedis()
 
-// 加 session middleware（放喺 transactionId 之後，helmet 之前）
-app.keys = [process.env.SESSION_SECRET || 'your-secret-key-change-me'] // 必須！用來簽名 cookie
-app.use(session(sessionConfig, app))
-
 app.use(envGuard)
 app.use(transactionId)
+// 加 session middleware（放喺 transactionId 之後，helmet 之前）
+app.keys = [process.env.SESSION_SECRET || 'your-secret-key-change-me'] // 必須！用來簽名 cookie
 app.use(errorHandler)
 app.use(
   koaHelmet({
@@ -52,6 +50,7 @@ app.use(
     },
   })
 )
+app.use(session(sessionConfig, app))
 
 app.use(bodyParser())
 

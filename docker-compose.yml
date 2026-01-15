@@ -1,0 +1,91 @@
+version: '3.9' # 更新到 3.9，支援更多功能
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile # 改成標準大寫 D（假設你檔案叫 Dockerfile）
+    container_name: node-app
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - SESSION_SECRET=${SESSION_SECRET:-super-secret-key-change-me} # 用 .env 變數，預設值防錯
+    depends_on:
+      redis:
+        condition: service_healthy # 等 Redis 真正 ready 先啟動 app（比 depends_on 更可靠）
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck: # 加 healthcheck，確保 app 正常
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health'] # 假設你有 /health endpoint
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    # ports:  # production 時建議註釋掉，唔暴露到 host
+    #   - '6379:6379'
+    restart: unless-stopped
+    networks:
+      - app-network
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck: # Redis healthcheck
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3 # 2026 年最新 LTS 左右版本
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false # 關鍵！關閉 security（本地開發最簡單，唔使密碼/HTTPS）
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m' # 調整 JVM memory
+    ulimits:
+      memlock: -1
+      nofile: 65536
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:9200 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana（官方版）
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.3
+    container_name: kibana
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200 # 注意改成 elasticsearch
+      # 如果之後開 security，就加：
+      # - ELASTICSEARCH_USERNAME=elastic
+      # - ELASTICSEARCH_PASSWORD=yourpassword
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  es-data:

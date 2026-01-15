@@ -7,6 +7,7 @@ import {
   NotFoundError,
   ExternalServiceError,
   logger,
+  InternalServerError,
 } from '../utils/index.mjs'
 
 const router = new Router({ prefix: '/users' })
@@ -62,6 +63,13 @@ router.get('/external/:username', async (ctx) => {
   } catch (err) {
     ctx.throw(new ExternalServiceError('External service error'))
   }
+})
+
+router.get('/crash', async () => {
+  // 故意拋一個 programmer error
+  throw new InternalServerError(
+    'This is a deliberate crash for testing Kibana logging!'
+  )
 })
 
 export default router

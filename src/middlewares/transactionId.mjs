@@ -14,8 +14,7 @@ export default async (ctx, next) => {
   ctx.set('X-Transaction-ID', transactionId)
 
   // 加到 logger context（如果用 Winston metadata）
-  logger.defaultMeta = logger.defaultMeta || {}
-  logger.defaultMeta.transactionId = transactionId
+  logger.addContext('transactionId', transactionId)
 
   await next()
 }

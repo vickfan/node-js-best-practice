@@ -27,10 +27,15 @@ export const sessionConfig = {
   signed: true, // 用 app.keys 簽名
   rolling: false, // 唔自動更新 maxAge
   renew: false,
-  secure: process.env.NODE_ENV === 'production', // production 時強制 HTTPS
   sameSite: 'lax', // 防 CSRF
+  // normally need to set secure to true in production
+  // secure: process.env.NODE_ENV === 'production', // production 時強制 HTTPS
   store: new RedisStore({
-    client: redisClient, // 用我哋嘅 redis client
+    host: 'redis',
+    port: 6379,
     prefix: 'sess:', // Redis key 前綴
+    onError: (err) => {
+      console.error('RedisStore error:', err)
+    },
   }),
 }
