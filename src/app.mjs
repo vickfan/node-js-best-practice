@@ -5,7 +5,12 @@ import Router from 'koa-router'
 import session from 'koa-session'
 
 import { connectRedis, sessionConfig } from './config/redis.mjs'
-import { errorHandler, transactionId, envGuard } from './middlewares/index.mjs'
+import {
+  errorHandler,
+  transactionId,
+  envGuard,
+  rateLimit,
+} from './middlewares/index.mjs'
 import {
   healthRouter,
   testErrorRouter,
@@ -37,6 +42,7 @@ await connectRedis()
 
 app.use(envGuard)
 app.use(transactionId)
+app.use(rateLimit)
 // 加 session middleware（放喺 transactionId 之後，helmet 之前）
 app.keys = [process.env.SESSION_SECRET || 'your-secret-key-change-me'] // 必須！用來簽名 cookie
 app.use(errorHandler)
@@ -46,7 +52,15 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
       },
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    hsts: {
+      maxAge: 31536000, // 1 年
+      includeSubDomains: true,
+      preload: true,
     },
   })
 )

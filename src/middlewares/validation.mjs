@@ -2,12 +2,16 @@ import { BadRequestError } from '../utils/error.mjs'
 
 export default (schema, location = 'body') =>
   async (ctx, next) => {
-    const data =
-      {
-        body: ctx.request.body,
-        query: ctx.request.query,
-        params: ctx.params,
-      }[location] || {}
+    let data
+    if (location === 'body') {
+      data = ctx.request.body || {}
+    } else if (location === 'query') {
+      data = ctx.request.query || {}
+    } else if (location === 'params') {
+      data = ctx.params || {}
+    } else {
+      data = {}
+    }
 
     const { error, value } = schema.validate(data, {
       abortEarly: false,

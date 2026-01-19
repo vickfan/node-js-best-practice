@@ -66,16 +66,31 @@ logger.stream = {
   },
 }
 
+console.log('isProduction', isProduction)
 if (isProduction) {
-  logger.add(
-    new ElasticsearchTransport({
-      level: 'info',
-      indexName: 'koa-logs',
-      clientOpts: {
-        node: 'http://opensearch:9200',
-      },
-    })
+  console.log(
+    'Adding Elasticsearch transport with node: http://elasticsearch:9200'
   )
+  const esTransport = new ElasticsearchTransport({
+    level: 'debug', // 暫時設低，睇多啲 log
+    indexPrefix: 'koa-logs', // 用 prefix，自動加日期
+    clientOpts: {
+      node: 'http://elasticsearch:9200',
+      maxRetries: 5, // 加重試
+      requestTimeout: 30000, // 30 秒 timeout
+    },
+    ensureIndexTemplate: true,
+    flushInterval: 500, // 每 0.5 秒 flush，方便即時睇
+  })
+
+  // 加 error handler 睇連線問題
+  esTransport.on('error', (err) => {
+    console.error('Elasticsearch transport ERROR:', err.message, err.stack)
+  })
+
+  logger.add(esTransport)
+
+  console.log('Elasticsearch transport added successfully')
 }
 
 export default logger
