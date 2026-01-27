@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import Router from 'koa-router'
 
-import { validation } from '../middlewares/index.mjs'
+import { validation, authMiddleware } from '../middlewares/index.mjs'
 import {
   BadRequestError,
   NotFoundError,
@@ -62,6 +62,10 @@ router.get('/external/:username', async (ctx) => {
   } catch (err) {
     ctx.throw(new ExternalServiceError('External service error'))
   }
+})
+
+router.get('/profile', authMiddleware, async (ctx) => {
+  ctx.body = { success: true, user: ctx.state.user }
 })
 
 export default router

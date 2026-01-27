@@ -16,6 +16,7 @@ import {
   testErrorRouter,
   usersRouter,
   sessionTestRouter,
+  authRouter,
 } from './routes/index.mjs'
 import { logger } from './utils/index.mjs'
 
@@ -66,13 +67,21 @@ app.use(
 )
 app.use(session(sessionConfig, app))
 
-app.use(bodyParser())
+app.use(
+  bodyParser({
+    jsonLimit: '1mb', // JSON payload 最多 1MB
+    formLimit: '1mb',
+    textLimit: '1mb',
+    multipart: false,
+  })
+)
 
 app.use(usersRouter.routes())
 app.use(healthRouter.routes())
 app.use(testErrorRouter.routes())
 app.use(router.routes())
 app.use(sessionTestRouter.routes())
+app.use(authRouter.routes())
 app.use(router.allowedMethods())
 
 export default app
